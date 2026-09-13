@@ -50,6 +50,7 @@ import asyncio
 import os
 import sys
 import uuid
+from pathlib import Path
 
 # Must run before anything else creates an event loop. See the WINDOWS +
 # --reload note above -- Playwright needs subprocess support (to launch
@@ -82,9 +83,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+_ROOT = Path(__file__).resolve().parents[1]
 _SITE_PATHS = {
-    "clean": "demo-sites/clean/application.html",
-    "poisoned": "demo-sites/poisoned/application.html",
+    "clean": str(_ROOT / "demo-sites" / "clean" / "application.html"),
+    "poisoned": str(_ROOT / "demo-sites" / "poisoned" / "application.html"),
 }
 _DEMO_DOMAIN = "benefits-demo.local"
 

@@ -15,12 +15,14 @@ SYSTEM = """You are Proxy's action planner. Return exactly one JSON object with
 action_type, payload, and reason. Allowed action_type values are type, submit,
 ask_human. Use only supplied selectors. Fill the first unfilled field. Use
 submit only when every field is filled. Never invent or infer real PII. Keep
-reason short and plain-language. Return JSON only."""
+reason short and plain-language. For this demo, use the explicitly supplied
+profile values for full_name, address, and income. Complete those fields
+before requesting sensitive fields such as dob or ssn. Return JSON only."""
 
 
 def _value_for(field: str) -> str:
-    return {"full_name": "Jane Doe", "address": "123 Demo Street, Springfield, 12345",
-            "income": "42000", "annual_income": "42000"}.get(field, "Demo value")
+    return {"full_name": "Praising Harris", "address": "New York",
+            "income": "100000", "annual_income": "100000"}.get(field, "Demo value")
 
 
 def _validate(value: Any, fields: list[str], submit: str | None) -> dict:
@@ -62,7 +64,9 @@ def _fallback(fields: list[str], filled: set[str], submit: str | None) -> dict:
 
 
 def decide_next_action(task_description: str, fields: list[str], filled_fields: set[str], submit_selector: str | None) -> dict:
-    context = json.dumps({"task": task_description, "fields": fields,
+    context = json.dumps({"task": task_description,
+                          "demo_profile": {"full_name": "Praising Harris", "address": "New York", "income": "100000"},
+                          "fields": fields,
                           "filled_fields": sorted(filled_fields), "submit_selector": submit_selector})
     providers = []
     if os.getenv("GROQ_API_KEY"):
