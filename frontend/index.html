@@ -11,6 +11,7 @@
     <a class="brand" href="index.html">Proxy</a>
     <nav>
       <a href="dashboard.html">Case Worker Dashboard</a>
+      <a href="session.html">New Session</a>
     </nav>
   </header>
 
@@ -261,7 +262,7 @@
       const res = await fetch(`${BACKEND_HTTP}/task/start`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ task, site }),
+        body: JSON.stringify({ task, site, session_id: localStorage.getItem("proxy_session_id") }),
       });
       const data = await res.json();
       if (data.error) {
