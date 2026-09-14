@@ -91,6 +91,7 @@ _SITE_PATHS = {
 _DEMO_DOMAIN = "benefits-demo.local"
 
 _tasks: dict[str, dict] = {}
+_sessions: dict[str, dict] = {}
 _approval_queues: dict[str, "asyncio.Queue[bool]"] = {}
 _pii_queues: dict[str, "asyncio.Queue[str]"] = {}
 
@@ -98,6 +99,13 @@ _pii_queues: dict[str, "asyncio.Queue[str]"] = {}
 class StartTaskRequest(BaseModel):
     task: str
     site: str = "clean"  # "clean" or "poisoned" -- which demo site to run against
+    session_id: str | None = None
+
+
+class SessionProfile(BaseModel):
+    full_name: str
+    address: str
+    income: str
 
 
 class ApproveRequest(BaseModel):
@@ -118,14 +126,47 @@ def root():
     return RedirectResponse(url="/app/index.html")
 
 
+@app.post("/session/start")
+def start_session():
+    session_id = str(uuid.uuid4())
+    _sessions[session_id] = {"profile": None}
+    return {"session_id": session_id}
+
+
+@app.post("/session/{session_id}/profile")
+def save_session_profile(session_id: str, profile: SessionProfile):
+    if session_id not in _sessions:
+        return {"ok": False, "error": "unknown session_id"}
+    values = {"full_name": profile.full_name.strip(), "address": profile.address.strip(), "income": profile.income.strip()}
+    if not all(values.values()):
+        return {"ok": False, "error": "all profile fields are required"}
+    _sessions[session_id]["profile"] = values
+    return {"ok": True}
+
+
+@app.post("/session/{session_id}/reset")
+def reset_session(session_id: str):
+    _sessions.pop(session_id, None)
+    return {"ok": True}
+
+
 @app.post("/task/start")
 def start_task(req: StartTaskRequest):
     if req.site not in _SITE_PATHS:
         return {"error": f"unknown site '{req.site}', expected one of {list(_SITE_PATHS)}"}
 
     task_id = str(uuid.uuid4())
+    session = _sessions.get(req.session_id) if req.session_id else None
+    profile = session.get("profile") if session else None
+    if not profile:
+        return {"error": "Start a session and save the profile first."}
+    task_text = req.task + (
+        "\nSESSION PROFILE (explicit user-provided ordinary details): "
+        f"full name={profile['full_name']}; address={profile['address']}; income={profile['income']}. "
+        "Ask the human directly for sensitive fields such as DOB or SSN."
+    )
     _tasks[task_id] = {
-        "task": req.task,
+        "task": task_text,
         "html_path": _SITE_PATHS[req.site],
         "domain": _DEMO_DOMAIN,
     }
