@@ -1,4 +1,8 @@
-# Proxy
+# Proxy (Strands Agents edition)
+
+[![CI](https://github.com/Pyhroff/proxy-Strands/actions/workflows/ci.yml/badge.svg)](https://github.com/Pyhroff/proxy-Strands/actions/workflows/ci.yml)
+
+> The same agent as [proxy-hackathon](https://github.com/Pyhroff/proxy-hackathon), rebuilt on [Strands Agents](https://strandsagents.com) with a session-first profile flow.
 
 An AI agent that completes real, multi-step web tasks on a user's behalf — with a security layer that detects and blocks prompt-injection attempts hidden in page content before it can hijack the agent, and a human-gated flow for sensitive fields (SSN, DOB, account numbers) that keeps those values out of the AI's context entirely.
 
